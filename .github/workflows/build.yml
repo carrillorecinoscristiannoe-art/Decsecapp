@@ -8,42 +8,45 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Crear buildozer.spec
+      - name: Crear buildozer.spec bueno
         run: |
           cat << 'EOF' > buildozer.spec
           [app]
           title = DedSec App
           package.name = decsecapp
           package.domain = org.dedsec
-          source.dir = .
+          source.dir =.
           source.include_exts = py,png,jpg,kv,atlas,json
+          source.include_patterns = main.py
           version = 0.1
-          requirements = python3,kivy
+          requirements = python3,kivy==2.3.0,Pillow
           orientation = portrait
           fullscreen = 0
-          android.archs = arm64-v8a
-          android.allow_backup = True
+          android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE
+          android.api = 33
           android.minapi = 21
+          android.archs = arm64-v8a, armeabi-v7a
 
           [buildozer]
           log_level = 2
           warn_on_root = 1
           EOF
 
-      - name: Compilar APK con Buildozer Action
-        uses: ArtemShedko/action-buildozer@v1
+          cat buildozer.spec
+
+      - name: Compilar APK
+        uses: digreatb7/buildozer-action@v2
         with:
-          command: buildozer -v android debug
-          subfolder: '.'
+          command: buildozer android debug
+          buildozer_version: stable
 
       - name: Subir APK listo
         uses: actions/upload-artifact@v4
         with:
           name: DedSec-APK-Instalable
           path: bin/*.apk
-          
+          if-no-files-found: error
